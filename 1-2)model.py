@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+
 
 from PIL import Image
 import numpy as np
@@ -57,12 +59,6 @@ print("학습 데이터 크기:", train_data.shape)
 print("학습 라벨:", train_labels)
 print("라벨 맵핑:", train_label_map)
 
-
-import os
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torch.utils.data import DataLoader, WeightedRandomSampler 
 
 
 # 하이퍼파라미터
@@ -127,19 +123,18 @@ import torch.nn.init as init
 # 가중치 초기화 함수
 def initialize_weights(m):
     if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
-        init.xavier_uniform_(m.weight)  # Xavier 초기화
+        init.xavier_uniform_(m.weight) 
         if m.bias is not None:
-            init.zeros_(m.bias)  # 편향 초기화
+            init.zeros_(m.bias)  # 편향
     elif isinstance(m, torch.nn.BatchNorm2d):
-        init.ones_(m.weight)  # BatchNorm 가중치 초기화
-        init.zeros_(m.bias)   # BatchNorm 편향 초기화
+        init.ones_(m.weight)  
+        init.zeros_(m.bias)   
 
 
 import torch
-import numpy as np
 
-# train_loader에서 클래스 개수를 동적으로 설정
-num_classes = len(train_loader.dataset.classes)  # 자동으로 클래스 개수 추출
+# train_loader에서 클래스 개수 동적으로 설정
+num_classes = len(train_loader.dataset.classes) 
 
 class CNN(torch.nn.Module):
     def __init__(self, num_classes):
@@ -150,7 +145,7 @@ class CNN(torch.nn.Module):
         self.conv_block2, self.shape = self.conv_block(self.shape, 8, 16, 3, stride=2)
 
         # 3개의 완전 연결 블록 정의
-        self.fc_block1 = self.fc_block(16 * self.shape**2, 256)  # 출력을 조정
+        self.fc_block1 = self.fc_block(16 * self.shape**2, 256) 
         self.fc_block2 = self.fc_block(256, 128)
         self.fc_block3 = self.fc_block(128, 32)
 
@@ -167,8 +162,8 @@ class CNN(torch.nn.Module):
             if m.bias is not None:
                 torch.nn.init.constant_(m.bias, 0)
         elif isinstance(m, torch.nn.BatchNorm2d):
-            torch.nn.init.ones_(m.weight)  # BatchNorm 가중치 초기화
-            torch.nn.init.zeros_(m.bias)   # BatchNorm 편향 초기화
+            torch.nn.init.ones_(m.weight) 
+            torch.nn.init.zeros_(m.bias)  
 
     # 합성곱 블록 정의 함수
     def conv_block(self, shape, in_, out_, kernel, stride=1, padding=0):
@@ -177,7 +172,7 @@ class CNN(torch.nn.Module):
             torch.nn.BatchNorm2d(out_),
             torch.nn.ReLU()
         )
-        shape = int(np.floor((shape - kernel + 2 * padding) / stride) + 1)  # 출력 크기 계산
+        shape = int(np.floor((shape - kernel + 2 * padding) / stride) + 1) 
         return block, shape
 
     # 완전 연결 블록 정의 함수
@@ -189,12 +184,12 @@ class CNN(torch.nn.Module):
         )
         return block
 
-    # 순전파 함수 정의
+    # 순전파 함수
     def forward(self, x):
         x = self.conv_block1(x)
         x = self.conv_block2(x)
 
-        x = torch.flatten(x, 1)  # 합성곱 블록의 출력을 평탄화
+        x = torch.flatten(x, 1) 
         x = self.fc_block1(x)
         x = self.fc_block2(x)
         x = self.fc_block3(x)
@@ -202,33 +197,29 @@ class CNN(torch.nn.Module):
         x = self.output(x)
         return x  # 최종 출력값 반환
 
-# 모델 초기화 시 클래스 수를 train_loader에서 자동으로 가져옵니다.
 model = CNN(num_classes=num_classes)
 
 
-import torch
-import torch.nn as nn
 import torch.optim as optim
 
 # device 설정
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # 클래스 수를 동적으로 설정하여 모델 초기화
-num_classes = len(train_loader.dataset.classes)  # train_loader에서 클래스 수 추출
+num_classes = len(train_loader.dataset.classes) 
 model = CNN(num_classes=num_classes).to(device)
 
-# 다중 클래스 분류에 적합한 손실 함수와 옵티마이저 설정
-loss_func = nn.CrossEntropyLoss()  # 다중 클래스 분류에 적합한 손실 함수
+# 옵티마이저 설정
+loss_func = nn.CrossEntropyLoss()  
 
-# 학습률 스케줄러 추가
-learning_rate = 0.002  # 학습률 설정
+# 학습률 스케줄러
+learning_rate = 0.002  # 학습률 
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-# 학습률 조정 스케줄러
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.1, patience=5, verbose=False)  # verbose=False로 설정하여 출력 방지
-
-# 모델 확인
+# 학습률 조정
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.1, patience=5, verbose=False) 
 model
+
 
 
 # 모델 초기화 및 가중치 초기화 적용
@@ -238,29 +229,27 @@ model = CNN(num_classes=num_classes).to(device)
 # 가중치 초기화 함수 수정
 def initialize_weights(m):
     if isinstance(m, nn.Conv2d):
-        # Kaiming 초기화
+        # Kaiming 
         nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
         if m.bias is not None:
             nn.init.constant_(m.bias, 0)
     elif isinstance(m, nn.Linear):
-        # Xavier 초기화
+        # Xavier
         nn.init.xavier_normal_(m.weight)
         if m.bias is not None:
             nn.init.constant_(m.bias, 0)
     elif isinstance(m, nn.BatchNorm2d):
-        # BatchNorm 가중치 및 편향 초기화
-        nn.init.ones_(m.weight)  # 가중치는 1로 초기화
-        nn.init.zeros_(m.bias)   # 편향은 0으로 초기화
+        # BatchNorm
+        nn.init.ones_(m.weight)  
+        nn.init.zeros_(m.bias)   
 
-model.apply(initialize_weights)  # 가중치 초기화 함수 적용
+model.apply(initialize_weights) 
 
 
 def train(model, epochs):
-    # 손실함수와 옵티마이저 설정
-    criterion = torch.nn.CrossEntropyLoss()  # 다중 클래스 분류에 적합한 손실 함수
+    # 손실함수와 옵티마이저
+    criterion = torch.nn.CrossEntropyLoss() 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.002)
-
-    # 학습과 검증 손실 및 정확도를 기록할 딕셔너리 초기화
     losses = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
 
     for epoch in range(epochs):
@@ -286,8 +275,8 @@ def train(model, epochs):
             loss = criterion(preds, labels)
 
             # 정확도 계산
-            _, predicted_labels = torch.max(preds, 1)  # 예측된 클래스 선택
-            running_acc += (predicted_labels == labels).sum().item()  # 맞춘 개수 누적
+            _, predicted_labels = torch.max(preds, 1) 
+            running_acc += (predicted_labels == labels).sum().item() 
 
             # 역전파
             loss.backward()
@@ -323,17 +312,15 @@ def train(model, epochs):
 
 ##학습
 
-# SimplifiedCNN 클래스로 모델 초기화
-num_classes = len(train_loader.dataset.classes)  # 클래스 개수를 자동으로 설정
-model = CNN(num_classes=num_classes).to(device)  # 모델 초기화 시 클래스 수 전달
+# SimplifiedCNN
+num_classes = len(train_loader.dataset.classes) 
+model = CNN(num_classes=num_classes).to(device) 
 
 # 모델 학습
 losses = train(model, 1)
 
 
 ##정확도
-import matplotlib.pyplot as plt
-
 plt.figure(figsize=(14, 6))
 plt.set_cmap('Paired')
 
@@ -352,5 +339,7 @@ plt.plot(losses['val_acc'], label='Validation Accuracy')
 plt.legend()
 plt.grid(True)
 plt.title('Accuracy Graph')
+
+
 
 plt.show()
